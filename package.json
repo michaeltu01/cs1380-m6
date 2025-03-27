@@ -1,0 +1,50 @@
+{
+  "name": "cs1380-stencil",
+  "version": "0.1.22",
+  "description": "A library for building distributed systems.",
+  "main": "distribution.js",
+  "useLibrary": false,
+  "directories": {
+    "test": "test"
+  },
+  "devDependencies": {
+    "eslint": "^8.55.0",
+    "eslint-config-google": "^0.14.0",
+    "javascript-obfuscator": "^4.1.0",
+    "jest": "^27.4.7"
+  },
+  "scripts": {
+    "pretest": "./scripts/pretest.sh",
+    "test": "./scripts/test.sh",
+    "build": "./scripts/publish.sh",
+    "lint": "eslint --ignore-path .gitignore --config .eslintrc . --fix"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "yargs": "^17.7.2",
+    "@brown-ds/distribution": "latest"
+  },
+  "report": {
+    "hours": 12,
+    "loc": 510,
+    "t1loc": 100,
+    "t2loc": 175,
+    "t3loc": 50,
+    "t4loc": 25,
+    "t5loc": 150,
+    "t6loc": 10,
+    "dev": {
+      "cpu-no": 10,
+      "mem-gb": 8,
+      "ssd-gb": 59
+    },
+    "throughput": {
+      "dev": [33.39]
+    },
+    "latency": {
+      "dev": [29.95]
+    },
+    "dloc": 1600
+  }
+}
