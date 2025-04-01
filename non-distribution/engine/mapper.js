@@ -99,3 +99,8 @@ function reducerFunction(key, values) {
     out[key] = entries;
     return out;
 }
+
+module.exports = {
+    mapperFunction,
+    reducerFunction
+}
