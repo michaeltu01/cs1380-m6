@@ -8,14 +8,13 @@ cd "$(dirname "$0")/../..$R_FOLDER" || exit 1
 
 DIFF=${DIFF:-diff}
 
-url="https://itbusiness.com"
+url="https://jonathanzhou.me"
 
-
-if $DIFF <(cat "$T_FOLDER"/d/ds_web_html.txt | c/getURLs.js $url | sort) <(sort "$T_FOLDER"/d/ds_urls_output.txt) >&2;
+if $DIFF <(cat /usr/src/app/non-distribution/t/ts/d/preurl.txt | c/getURLs.js $url | sort) <(sort /usr/src/app/non-distribution/t/ts/d/posturl.txt) >&2;
 then
-    echo "$0 success: URL sets are identical"
+    echo "$0 success: texts are identical"
     exit 0
 else
-    echo "$0 failure: URL sets are not identical"
+    echo "$0 failure: texts are not identical"
     exit 1
 fi

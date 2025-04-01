@@ -1,33 +1,34 @@
 # M0: Setup & Centralized Computing
+
 > Add your contact information below and in `package.json`.
-* name: `Joseph Dodson`
-* email: `joseph_dodson@brown.edu`
-* cslogin: `jdodson4`
+
+* name: Jonathan Zhou
+
+* email: jonathan_zhou@brown.edu
+
+* cslogin: jdzhou
+
+
 ## Summary
-My implementation consists of 8 components addressing T1--8. The most challenging aspect was measuring throughput because there wasn't a stencil, which required me to come up with the design. At first, I used promises in JavaScript, which I had to learn more about that to complete the throughput measurement. However, this caused the linter to fail, so I decided to switch to shell. Since I'm not experienced with shell, I had to learn how to time operations and loop over the URLs. Measuring query throughput was easier than measuring crawler & indexer throughput since I just ran a set number of queries and did not need to interact with files (other than global-index, from which I picked the query terms)
 
-The 7 components are: 
-- stem.js
-- getText.js
-- getURLs.js
-- process.sh
-- merge.js
-- query.js
-- 8 tests
-- throughput measurement
 
-I didn't complete any of the lab work or extra credit. The JavaScript components and the shell component were completed by reading the handout, looking at the tests, and using the provided stencils. The tests were based off of the given tests, but with new data.
+My implementation consists of 6 components addressing T1--8.  The most challenging aspect of this milestone was testing because all the tests I wrote were in bash script, which I had not worked with before, so it was difficult to learn the syntax. Also, working with relative and absolute file paths together was very frustrating at times.
+
+
 ## Correctness & Performance Characterization
-To characterize correctness, we developed 8 that test the following cases: stem, getText, getURLs, process, merge, query, invert, and one end-to-end test. I used the provided tests as a stencil, but with new data files. For example,for stemming, I used a file that had more than one word per line -- this made me realize I had a bug (I was stemming each line, not the words). For getText and getURLs, I used a larger HTML document. For merge, I used the example given in the comment within the code stencil. At first, this test failed, even though the provided test succeeded, due to an issue in my handling of the global index (I was popping the first line, causing the merge to miss some data). 
 
-*Performance*: The throughput of various subsystems is described in the `"throughput"` portion of package.json. The characteristics of my development machines are summarized in the `"dev"` portion of package.json. The metrics are listed in order of crawler, indexer, and query throughput, in operations per second.
+*Correctness*:
+To characterize correctness, I developed 8 tests that test the following cases: general functionality for the smaller components that just use libraries, and more edge cases for the larger components like query.js. For query.js, I tested terms that did not exist in the index, terms that did exist in the index, multi-word term matches, and tried querying terms that did not exist in the index, but were part of words that did exist in the index (ex: plant vs plantation). I wrote at least one test for all of the components I developed, and for each component, I also wrote a custom data file to test the component with in the ts/d directory.
 
-Throughput was tested by using sandbox 1. This provided enough URLs for the crawler and indexer without taking too much time. Testing with a larger corpus, like sandbox 2, resulted in similar results but a much longer test time. For each URL on the page, the crawler is called, and the time taken to download the page is added to a total crawl time tracker. Then, the indexer is called on that page's content, with the time added to a separate total index time tracker. At the end, the crawl time and index time are divided by the total number of URLs/pages crawled & indexed to get the number of operations per second. For the query throughput measurement, 100 queries are run using randomly selected n-grams from the global index. The total time taken is divided by 100 to get the number of queries per second. 
 
-The metrics (also in package.json) are:
-"dev": [1.98, 3.48, 3.75],
-"aws": [0.80, 0.99, 1.09],
+*Performance*: 
+To measure throughput of my system both locally and on the AWS node, I decided to use the time command to run each subsystem (crawler, indexer, and query) on the same corpora (https://cs.brown.edu/courses/csci1380/sandbox/4/), I would time how long each program would take to run on the corpora and I would count the number of links the subsystem operated on, and then I would divide the number of URLs processed by the time taken in seconds to get the throughput for the components. I wrote a script in ts called s_throughput.sh that would just loop 20 times and run a subsystem in order to get these measurements.
 
-I was surprised at how much slower the AWS deployment was. However, given that I used a micro instance, I'm sure there were many fewer cores and much less processing power of the EC2 instance as compared to my computer. It would also make sense for the crawler to take longer, since AWS probably throttles network activity for EC2 instances, especially on the free tier.
+Doing this, I found that locally, crawl.sh processed 20 URLs in 3 minutes and 37 seconds, equating to a throughput of 0.092 URLs per second; index.sh processed 20 pages in 1 minutes and 7 seconds, giving a 0.299 URLs/sec throughput; query.js processed 20 queries in 1 minute and 8 seconds, which means that its throughput is 0.294 queries per second.
+
+On the AWS EC2 instance, I ran the same experiments and found that crawling 20 URLs took 29.69 seconds, indexing 20 pages took 22.129 seconds, and querying 20 times took 1 minute and 58 seconds, giving throughputs of 0.674 URLs/sec, 0.904 URLs/sec, and 0.169 queries/sec respectively. I was confused by why the throughput was so much slower relatively for querying on AWS, and I think it was because of the term 'tag' I used for the query term. The bottleneck became the time it takes to print to stdout, not the actual processing. When I tried a term that didn't exist for query, it only took 18.7 seconds to run 20 queries, or a throughput of 1.07 queries/sec.
+
+
 ## Wild Guess
-For the fully distributed version, I guess around 3000 lines of code. Given that the non-distributed version took around 300 lines of code, we know that the distributed version will use more than that. While the core logic will be similar, there will be lots of new pieces for managing the distribution, ensuring consistency, and running in a distributed fashion. At a minimum, I expect this to take 1500 lines, but with tests and performance measurements included, I estimate around 3000 lines of code.
+
+I estimated that building the fully distributed, scalable version of this search engine would take around 2000 lines of code, or a little more than 5x the amount of code that I wrote for this non-distributed search engine. I think it would take this amount because there would be significant more overhead code in splitting the tasks amongst nodes, message passing between nodes and servers to process the data, and test each additional distributed component of the system.

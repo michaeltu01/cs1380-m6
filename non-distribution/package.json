@@ -2,9 +2,9 @@
   "name": "cs1380:m0",
   "version": "1.0.0",
   "author": {
-    "name": "Joseph Dodson",
-    "email": "joseph_dodson@brown.edu",
-    "cslogin": "jdodson4"
+    "name": "Jonathan Zhou",
+    "email": "jonathan_zhou@brown.edu",
+    "cslogin": "jdzhou"
   },
   "description": "A set of components for cs1380's search engine.",
   "dependencies": {
@@ -24,19 +24,19 @@
     "jest": "^29.7.0"
   },
   "report": {
-    "hours": 7,
-    "jsloc": 270,
-    "sloc": 200,
+    "hours": 20,
+    "jsloc": 350,
+    "sloc": 100,
     "dev": {
-      "cpu-no": 10,
+      "cpu-no": 12,
       "mem-gb": 8,
-      "ssd-gb": 59
+      "ssd-gb": 251
     },
     "throughput": {
-      "dev": [2, 3.33, 3.75],
-      "aws": [0.833, 1.11, 1.09],
+      "dev": [0.092, 0.299, 0.294],
+      "aws": [0.674, 0.904, 0.169],
       "gs": []
     },
-    "dloc": 3000
+    "dloc": 2000
   }
 }

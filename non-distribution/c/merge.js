@@ -43,10 +43,11 @@ const compare = (a, b) => {
     return 0;
   }
 };
-
 const rl = readline.createInterface({
   input: process.stdin,
 });
+
+/* JDZHOU IMPLEMENTATION */
 
 // 1. Read the incoming local index data from standard input (stdin) line by line.
 let localIndex = '';
@@ -58,12 +59,20 @@ rl.on('close', () => {
   // 2. Read the global index name/location, using process.argv
   // and call printMerged as a callback
   const globalIndexPath = process.argv[2];
-  if (!globalIndexPath) {
-    console.error('Error: Please provide path to global index file');
+
+  // check that the file actually exists lol
+  if (!fs.existsSync(globalIndexPath)) {
+    console.error(`Error: The file ${globalIndexPath} does not exist.`);
     process.exit(1);
   }
+  // read the file using fs.readFile();
+  fs.readFile(globalIndexPath, 'utf-8', (err, data) => {
+    if (err) {
+      printMerged(err, null);
+    }
 
-  fs.readFile(globalIndexPath, 'utf8', printMerged);
+    printMerged(null, data);
+  });
 });
 
 const printMerged = (err, data) => {
@@ -75,41 +84,56 @@ const printMerged = (err, data) => {
   // Split the data into an array of lines
   const localIndexLines = localIndex.split('\n');
   const globalIndexLines = data.split('\n');
+  // console.error(globalIndexLines);
 
   localIndexLines.pop();
+  globalIndexLines.pop();
 
   const local = {};
   const global = {};
 
   // 3. For each line in `localIndexLines`, parse them and add them to the `local` object where keys are terms and values contain `url` and `freq`.
   for (const line of localIndexLines) {
-    const [term, freq, url] = line.split('|').map((s) => s.trim());
-    local[term] = {
-      url: url,
-      freq: parseInt(freq),
-    };
+    // each line has format: `<word/ngram> | <frequency> | <url>`
+    const components = line.split(' | ');
+    if (components.length != 3) {
+      console.error('Error: illformed format for local line');
+      continue;
+    }
+    const term = components[0].trim();
+    const freq = components[1].trim();
+    const url = components[2].trim();
+    local[term] = {url, freq}; // this creates an object that has field names url and freq
   }
 
   // 4. For each line in `globalIndexLines`, parse them and add them to the `global` object where keys are terms and values are arrays of `url` and `freq` objects.
   // Use the .trim() method to remove leading and trailing whitespace from a string.
   for (const line of globalIndexLines) {
-    const [term, urlFreqPairs] = line.split('|').map((s) => s.trim());
-    if (!urlFreqPairs) continue;
-
-    const pairs = urlFreqPairs.split(' ');
+    // `<word/ngram> | <url_1> <frequency_1> <url_2> <frequency_2> ... <url_n> <frequency_n>`
+    const components = line.split(' | ');
+    if (components.length != 2) {
+      console.error('line: ' + line);
+      console.error('Error: illformed format for global line. Only ${components.length} components long');
+      continue;
+    }
+    const term = components[0].trim();
+    const urlFreqString = components[1].trim();
+    const urlFreqArr = urlFreqString.split(' '); // urlFreqArr will be alternating urls and frequencies.
+    // check for even number of elements
+    if (urlFreqArr.length % 2 != 0) {
+      console.error('Error: malformed urlFreqArr length. Not even.');
+      continue;
+    }
     const urlfs = [];
 
-    // process pairs of url and frequency
-    for (let i = 0; i < pairs.length; i += 2) {
-      if (pairs[i] && pairs[i + 1]) {
-        urlfs.push({
-          url: pairs[i],
-          freq: parseInt(pairs[i + 1]),
-        });
-      }
+    for (let i = 0; i < urlFreqArr.length-1; i += 2) {
+      const url = urlFreqArr[i];
+      const freq = parseInt(urlFreqArr[i+1], 10);
+      const pair = {url, freq};
+      urlfs.push(pair);
     }
-
-    global[term] = urlfs;
+    // console.error(urlfs);
+    global[term] = urlfs; // Array of {url, freq} objects
   }
 
   // 5. Merge the local index into the global index:
@@ -118,27 +142,33 @@ const printMerged = (err, data) => {
   //     - Sort the array by `freq` in descending order.
   // - If the term does not exist in the global index:
   //     - Add it as a new entry with the local index's data.
-
-  const merged = {...global};
-
-  for (const term in local) {
-    if (term in merged) {
-      // term exists in global index, append and sort
-      merged[term].push(local[term]);
-      merged[term].sort(compare);
+  for (const localTerm in local) {
+    const urlFreqPair = local[localTerm];
+    // check if the local term exists in the global
+    if (localTerm in global) {
+      // if it does, append to the array of entries in global and re-sort
+      global[localTerm].push(urlFreqPair);
+      global[localTerm].sort(compare);
     } else {
-      // new term -> new entry
-      merged[term] = [local[term]];
+      // if it doesn't, add a new entry into global with local index data
+      global[localTerm] = [urlFreqPair];
     }
   }
 
   // 6. Print the merged index to the console in the same format as the global index file:
   //    - Each line contains a term, followed by a pipe (`|`), followed by space-separated pairs of `url` and `freq`.
-  for (const term in merged) {
-    const urlFreqPairs = merged[term]
-        .map((entry) => `${entry.url} ${entry.freq}`)
-        .join(' ');
-    console.log(`${term} | ${urlFreqPairs}`);
+  for (const globalTerm in global) {
+    process.stdout.write(globalTerm + ' | ');
+    const urlfs = global[globalTerm];
+    for (let i = 0; i < urlfs.length; i++) {
+      const curPair = urlfs[i];
+      // NOTE: the fields of the pair object have to be accessed through url and freq. Can't index in to an object as you would an array.
+      const curUrl = curPair.url;
+      const curFreq = curPair.freq;
+      process.stdout.write(curUrl + ' ' + curFreq + ' ');
+    }
+    process.stdout.write('\n');
   }
 };
 
+/* END OF JDZHOU IMPLEMENTATION */

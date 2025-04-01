@@ -14,9 +14,13 @@ const rl = readline.createInterface({
   terminal: false,
 });
 
+/* JZ IMPLEMENTATION */
+
+const stemmer = natural.PorterStemmer;
+
 rl.on('line', function(line) {
   // Print the Porter stem from `natural` for each element of the stream.
-  const words = line.trim().split(/\s+/);
-  const stemmedWords = words.map((word) => natural.PorterStemmer.stem(word));
-  console.log(stemmedWords.join(' '));
+  console.log(stemmer.stem(line));
 });
+
+/* END OF JZ IMPLEMENTATION */

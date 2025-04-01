@@ -12,16 +12,20 @@ const rl = readline.createInterface({
   input: process.stdin,
 });
 
-const allLines = [];
+/* JZ Implementation */
+
+let html = '';
 
 rl.on('line', (line) => {
   // 1. Read HTML input from standard input, line by line using the `readline` module.
-  allLines.push(line);
+  html += line;
 });
 
 // 2. after all input is received, use convert to output plain text.
 rl.on('close', () => {
-  console.log(convert(allLines.join('\n')));
+  console.log(convert(html, {wordwrap: 130}));
 });
+
+/* END OF JDZHOU IMPLEMENTATION */
 
 

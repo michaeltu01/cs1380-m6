@@ -1,7 +1,6 @@
 #!/bin/bash
 # This is a student test
 
-T_FOLDER=${T_FOLDER:-t}
 R_FOLDER=${R_FOLDER:-}
 
 cd "$(dirname "$0")/../..$R_FOLDER" || exit 1
@@ -9,17 +8,18 @@ cd "$(dirname "$0")/../..$R_FOLDER" || exit 1
 DIFF=${DIFF:-diff}
 DIFF_PERCENT=${DIFF_PERCENT:-0}
 
-cat /dev/null > d/global-index.txt
+cat /dev/null > /usr/src/app/non-distribution/t/ts/d/globalmerge.txt
 
-files=("$T_FOLDER"/d/ms{1..2}.txt)
+files=(/usr/src/app/non-distribution/t/ts/d/premerge{1..2}.txt)
 
 for file in "${files[@]}"
 do
-    cat "$file" | c/merge.js d/global-index.txt > d/temp-global-index.txt
-    mv d/temp-global-index.txt d/global-index.txt
+    cat "$file" | c/merge.js /usr/src/app/non-distribution/t/ts/d/globalmerge.txt > /usr/src/app/non-distribution/t/ts/d/temp-global-index.txt
+    mv /usr/src/app/non-distribution/t/ts/d/temp-global-index.txt /usr/src/app/non-distribution/t/ts/d/globalmerge.txt
 done
 
-if DIFF_PERCENT=$DIFF_PERCENT t/gi-diff.js <(sort d/global-index.txt) <(sort "$T_FOLDER"/d/ms3.txt) >&2;
+
+if DIFF_PERCENT=$DIFF_PERCENT t/gi-diff.js <(sort /usr/src/app/non-distribution/t/ts/d/globalmerge.txt) <(sort /usr/src/app/non-distribution/t/ts/d/postmerge.txt) >&2;
 then
     echo "$0 success: global indexes are identical"
     exit 0
