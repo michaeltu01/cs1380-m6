@@ -37,7 +37,8 @@ function mapperFunction(key, value) {
                 .toLowerCase()
                 .replaceAll(notAsciiRegex, '')
                 .split('\n')
-                .filter((word) => word in stopwords)
+                .filter((word) => !(word in stopwords))
+                .filter((word) => word !== "")
                 .join('\n');
 
 
@@ -48,9 +49,9 @@ function mapperFunction(key, value) {
             // Split stemmed text into array --> Combine this array
             ngrams = generateNgrams(stemmedText.split('\n'));
             results = [];
-            for (const gram in ngrams) {
+            for (const gram of ngrams) {
                 const out = {};
-                out[gram] = [key, 1];
+                out[gram[0]] = [key, gram[1]];
                 results.push(out);
             }
             return results;
@@ -60,42 +61,26 @@ function mapperFunction(key, value) {
 
 // Combine
 // Input: terms is an array of words
+// Output: <gram, count>
 function generateNgrams(terms) {
-    let grams = [];
+    let grams = {};
     const n = terms.length;
     for (let i = 0; i < n - 1; i++) {
         const bi = terms[i] + " " + terms[i + 1];
-        grams.append(bi);
+        if (bi in grams) {
+            grams[bi]++;
+        }
+        else grams[bi] = 1;
     }
     for (let i = 0; i < n - 2; i++) {
         const tri = terms[i] + " " + terms[i + 1] + " " + terms[i + 2];
-        grams.append(tri);
-    }
-    
-    return grams;
-}
-
-/* REDUCER */
-
-function reducerFunction(key, values) {
-    // input: ngram, list of [url, 1]
-    // output: <ngram, sorted results of [url, cnt]>
-    
-    // url -> count
-    const urlCnts = {};
-    for (const urlPair in values) {
-        const url = urlPair[0];
-        if (url in urlCnts) {
-            urlCnts[url]++;
+        if (tri in grams) {
+            grams[tri]++;
         }
-        else urlCnts[url] = 1;
+        else grams[tri] = 1;    
     }
-
-    // sort [url, cnt] pairs by hitcount
-    const entries = Object.entries(urlCnts);
-    entries.sort((a, b) => b[1] - a[1]);
-
-    const out = {};
-    out[key] = entries;
-    return out;
+    
+    return Object.entries(grams);
 }
+
+module.exports = mapperFunction;
