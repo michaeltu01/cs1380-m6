@@ -2,13 +2,36 @@
 const {convert} = require('html-to-text');
 const fs = require('fs');
 const natural = require('natural');
+const https = require('https');
 
 async function mapperFunction(key, value) {
     // key is URL, <nothing -- unicorns>
     try {
         // fetch the page content
-        const response = await fetch(key, { method: "GET" });
-        const html = await response.text();
+        // const response = await fetch(key, { method: "GET" });
+        const html = await new Promise((resolve, reject) => {
+            const options = {
+                rejectUnauthorized: false // This will ignore SSL certificate issues
+            };
+
+            https.get(key, options, (res) => {
+                let data = '';
+                
+                // A chunk of data has been received
+                res.on('data', (chunk) => {
+                    data += chunk;
+                });
+                
+                // The whole response has been received
+                res.on('end', () => {
+                    resolve(data);
+                });
+            }).on('error', (err) => {
+                reject(err);
+            });
+        });
+        // const html = await response.text();
+        console.log(html);
         let text = convert(html, {wordwrap: 130});
 
         // Process the text to make each word on a newline, remove stopwords, lowercase, etc.
@@ -20,17 +43,17 @@ async function mapperFunction(key, value) {
         const notAsciiRegex = /[^\x00-\x7F]/g;
 
         // Read in the stopword corpora
-        const STOPWORDS_PATH = '../non-distribution/d/stopwords.txt';
+        const STOPWORDS_PATH = 'non-distribution/d/stopwords.txt';
         let stopwords = '';
         try {
             const data = fs.readFileSync(STOPWORDS_PATH, {encoding: 'utf8', flag: 'r'}).toString();
             stopwords = data.split('\n');
         } catch (err) {
-            console.err('Error reading stopwords.txt:', err);
+            console.error('Error reading stopwords.txt:', err);
             return;
         }
 
-        text.replaceAll(newLineRegex, '\n')
+        text = text.replaceAll(newLineRegex, '\n')
             .replaceAll(nonAlphabeticRegex, '')
             .toLowerCase()
             .replaceAll(notAsciiRegex, '')
@@ -38,7 +61,6 @@ async function mapperFunction(key, value) {
             .filter((word) => !(word in stopwords))
             .filter((word) => word !== "")
             .join('\n');
-
 
         // After processing all the text, then stem everything
         const stemmer = natural.PorterStemmer;

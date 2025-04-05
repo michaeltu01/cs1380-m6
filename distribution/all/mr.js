@@ -44,6 +44,7 @@ function mr(config) {
    */
   function exec(configuration, cb) {
     const jobId = id.getID(configuration);
+    console.log('mr configuration', configuration);
     
     const mapReduceService = {
       mapper: configuration.map,
@@ -63,6 +64,8 @@ function mr(config) {
             completedCount++;
             
             // apply mapper to kvp
+            console.log('this', this);
+            console.log('this.mapper', this.mapper);
             const result = this.mapper(key, value);
             
             // collect map results
@@ -162,6 +165,8 @@ function mr(config) {
     }
     
     const serviceId = 'mr-' + jobId;
+    console.log('mapReduceService', mapReduceService);
+    console.log('mapReduceService mapper', mapReduceService.mapper);
     
     // register service on nodes
     distribution[context.gid].routes.put(mapReduceService, serviceId, () => {

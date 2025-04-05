@@ -20,5 +20,9 @@ function reducerFunction(key, values) {
 
     const out = {};
     out[key] = entries;
+    console.log(key);
+    console.log(entries);
     return out;
 }
+
+module.exports = reducerFunction;

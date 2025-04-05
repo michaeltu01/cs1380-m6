@@ -51,15 +51,15 @@ function idToNum(id) {
 
 function naiveHash(kid, nids) {
   nids.sort();
-  return nids[idToNum(kid) % nids.length];
+  return nids[global.distribution.util.id.idToNum(kid) % nids.length];
 }
 
 function consistentHash(kid, nids) {
-  const kidNum = idToNum(kid);
+  const kidNum = global.distribution.util.id.idToNum(kid);
 
   const nodeIds = nids.map((nid) => ({
     id: nid,
-    num: idToNum(nid)
+    num: global.distribution.util.id.idToNum(nid)
   }));
 
   nodeIds.sort((a, b) => a.num - b.num);
@@ -74,7 +74,7 @@ function consistentHash(kid, nids) {
 function rendezvousHash(kid, nids) {
   const concatIds = nids.map((nid) => ({
     id: nid,
-    hash: idToNum(getID(kid + nid))
+    hash: global.distribution.util.id.idToNum(getID(kid + nid))
   }));
 
   let max = -1;
@@ -93,6 +93,7 @@ module.exports = {
   getNID,
   getSID,
   getMID,
+  idToNum,
   naiveHash,
   consistentHash,
   rendezvousHash,
