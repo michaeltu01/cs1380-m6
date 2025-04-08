@@ -38,6 +38,7 @@ function send(message, remote, callback) {
           const deserialized = global.distribution.util.deserialize(responseData);
           callback(...deserialized);
         } catch (error) {
+          console.log("got response data", responseData);
           console.log('Error deserializing response:', error);
           callback(new Error('Failed to deserialize response'));
         }

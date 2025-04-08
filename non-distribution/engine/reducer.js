@@ -1,12 +1,14 @@
 /* REDUCER */
 
 function reducerFunction(key, values) {
+    console.log(key, values)
     // input: ngram, list of [url, 1]
     // output: <ngram, sorted results of [url, cnt]>
     
     // url -> count
     const urlCnts = {};
-    for (const urlPair in values) {
+    for (const urlPair of values) {
+        console.log(urlPair)
         const url = urlPair[0];
         if (url in urlCnts) {
             urlCnts[url]++;
@@ -20,8 +22,8 @@ function reducerFunction(key, values) {
 
     const out = {};
     out[key] = entries;
-    console.log(key);
-    console.log(entries);
+    // console.log(key);
+    // console.log(entries);
     return out;
 }
 

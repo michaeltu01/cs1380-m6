@@ -1,10 +1,10 @@
 /* MAPPER */
-const {convert} = require('html-to-text');
-const fs = require('fs');
-const natural = require('natural');
-const https = require('https');
 
-async function mapperFunction(key, value) {
+async function mapperFunction(key, value, require) {
+    const {convert} = require('html-to-text');
+    const fs = require('fs');
+    const natural = require('natural');
+    const https = require('https');
     // key is URL, <nothing -- unicorns>
     try {
         // fetch the page content
@@ -31,7 +31,7 @@ async function mapperFunction(key, value) {
             });
         });
         // const html = await response.text();
-        console.log(html);
+        // console.log(html);
         let text = convert(html, {wordwrap: 130});
 
         // Process the text to make each word on a newline, remove stopwords, lowercase, etc.
@@ -67,11 +67,29 @@ async function mapperFunction(key, value) {
         stemmedText = stemmer.stem(text);
         
         // Split stemmed text into array --> Combine this array
-        ngrams = generateNgrams(stemmedText.split('\n'));
+        terms = stemmedText.split('\n');
+        let grams = {};
+        const n = terms.length;
+        for (let i = 0; i < n - 1; i++) {
+            const bi = terms[i] + " " + terms[i + 1];
+            if (bi in grams) {
+                grams[bi]++;
+            }
+            else grams[bi] = 1;
+        }
+        for (let i = 0; i < n - 2; i++) {
+            const tri = terms[i] + " " + terms[i + 1] + " " + terms[i + 2];
+            if (tri in grams) {
+                grams[tri]++;
+            }
+            else grams[tri] = 1;    
+        }
+    
+        ngrams = Object.entries(grams);
         results = [];
         for (const gram of ngrams) {
             const out = {};
-            out[gram[0]] = [key, gram[1]];
+            out[gram[0]] = [[key, gram[1]]];
             results.push(out);
         }
         return results;
@@ -80,30 +98,6 @@ async function mapperFunction(key, value) {
         console.error('Error in mapper function', err);
         return [];
     }
-}
-
-// Combine
-// Input: terms is an array of words
-// Output: <gram, count>
-function generateNgrams(terms) {
-    let grams = {};
-    const n = terms.length;
-    for (let i = 0; i < n - 1; i++) {
-        const bi = terms[i] + " " + terms[i + 1];
-        if (bi in grams) {
-            grams[bi]++;
-        }
-        else grams[bi] = 1;
-    }
-    for (let i = 0; i < n - 2; i++) {
-        const tri = terms[i] + " " + terms[i + 1] + " " + terms[i + 2];
-        if (tri in grams) {
-            grams[tri]++;
-        }
-        else grams[tri] = 1;    
-    }
-    
-    return Object.entries(grams);
 }
 
 module.exports = mapperFunction;

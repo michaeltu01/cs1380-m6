@@ -44,7 +44,7 @@ function mr(config) {
    */
   function exec(configuration, cb) {
     const jobId = id.getID(configuration);
-    console.log('mr configuration', configuration);
+    // console.log('mr configuration', configuration);
     
     const mapReduceService = {
       mapper: configuration.map,
@@ -64,9 +64,30 @@ function mr(config) {
             completedCount++;
             
             // apply mapper to kvp
-            console.log('this', this);
-            console.log('this.mapper', this.mapper);
-            const result = this.mapper(key, value);
+            // console.log('this', this);
+            // console.log('this.mapper', this.mapper);
+            console.log("calling this.mapper")
+            const result = this.mapper(key, value, distribution.util.require);
+            // if the rtesult is a pending promise, wait for it to resolve
+            if (result instanceof Promise) {
+              result.then(res => {
+                console.log("this.mapper result", res);
+                if (Array.isArray(res)) {
+                  mappedResults.push(...res);
+                } else {
+                  mappedResults.push(res);
+                }
+                
+                // once all keys processed, store results
+                if (completedCount === keys.length) {
+                  const mapResultKey = intermediateId + '_map';
+                  distribution.local.store.put(mappedResults, mapResultKey, (putErr) => {
+                    callback(putErr, mappedResults);
+                  });
+                }
+              });
+              return;
+            } 
             
             // collect map results
             if (Array.isArray(result)) {
@@ -184,11 +205,12 @@ function mr(config) {
         
         for (const nodeId in nodeGroup) {
           const payload = [keyDistribution[nodeId], context.gid, jobId];
-          
+          console.log("sending map request to node", nodeId, payload);
           distribution.local.comm.send(payload, {
             node: nodeGroup[nodeId],
             ...mapRequest
           }, () => {
+            console.log("map request complete for node", nodeId);
             nodesCompleted++;
             
             // when all map operations complete, start shuffle
@@ -197,14 +219,15 @@ function mr(config) {
                 service: serviceId,
                 method: 'shuffle'
               };
-              
+              console.log("sending shuffle request for node", nodeId, context.gid, jobId);
               distribution[context.gid].comm.send([context.gid, jobId], shuffleRequest, () => {
+                console.log("shuffle request complete for node", nodeId);
                 // after shuffle, reduce
                 const reduceRequest = {
                   service: serviceId,
                   method: 'reduce'
                 };
-                
+                console.log("sending reduce request for node", nodeId);
                 distribution[context.gid].comm.send([context.gid, jobId], reduceRequest, (err, reduceResults) => {
                   const finalResults = [];
                   
@@ -215,6 +238,7 @@ function mr(config) {
                   }
                   
                   // return final results
+                  console.log("finalResults", finalResults);
                   cb(null, finalResults);
                 });
               });

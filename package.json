@@ -22,8 +22,10 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "yargs": "^17.7.2",
-    "@brown-ds/distribution": "latest"
+    "@brown-ds/distribution": "latest",
+    "html-to-text": "^9.0.5",
+    "natural": "^8.0.1",
+    "yargs": "^17.7.2"
   },
   "report": {
     "hours": 12,
@@ -40,10 +42,14 @@
       "ssd-gb": 59
     },
     "throughput": {
-      "dev": [33.39]
+      "dev": [
+        33.39
+      ]
     },
     "latency": {
-      "dev": [29.95]
+      "dev": [
+        29.95
+      ]
     },
     "dloc": 1600
   }

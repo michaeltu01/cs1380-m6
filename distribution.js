@@ -76,6 +76,8 @@ distribution['all'].mem =
 distribution['all'].store =
     require('./distribution/all/store')({gid: 'all'});
 
+distribution.util.require = require;
+
 distribution.node.config = global.nodeConfig;
 module.exports = distribution;
 
