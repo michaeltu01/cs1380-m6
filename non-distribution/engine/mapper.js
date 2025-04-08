@@ -44,7 +44,7 @@ async function mapperFunction(key, value, require) {
 
         // Read in the stopword corpora
         const STOPWORDS_PATH = 'non-distribution/d/stopwords.txt';
-        let stopwords = '';
+        let stopwords = [];
         try {
             const data = fs.readFileSync(STOPWORDS_PATH, {encoding: 'utf8', flag: 'r'}).toString();
             stopwords = data.split('\n');
@@ -52,22 +52,23 @@ async function mapperFunction(key, value, require) {
             console.error('Error reading stopwords.txt:', err);
             return;
         }
+        const stemmer = natural.PorterStemmer;
 
         text = text.replaceAll(newLineRegex, '\n')
             .replaceAll(nonAlphabeticRegex, '')
             .toLowerCase()
             .replaceAll(notAsciiRegex, '')
             .split('\n')
-            .filter((word) => !(word in stopwords))
+            .filter((word) => !(stopwords.includes(word)))
             .filter((word) => word !== "")
+            .map((word) => stemmer.stem(word))
             .join('\n');
-
+        console.log(text);
         // After processing all the text, then stem everything
-        const stemmer = natural.PorterStemmer;
-        stemmedText = stemmer.stem(text);
+        // stemmedText = stemmer.stem(text.split('\n')).join('\n');
         
         // Split stemmed text into array --> Combine this array
-        terms = stemmedText.split('\n');
+        terms = text.split('\n');
         let grams = {};
         const n = terms.length;
         for (let i = 0; i < n - 1; i++) {

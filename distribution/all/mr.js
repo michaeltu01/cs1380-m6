@@ -61,17 +61,15 @@ function mr(config) {
         
         keys.forEach(key => {
           distribution[storageGroup].store.get(key, (err, value) => {
-            completedCount++;
             
             // apply mapper to kvp
             // console.log('this', this);
             // console.log('this.mapper', this.mapper);
-            console.log("calling this.mapper")
             const result = this.mapper(key, value, distribution.util.require);
             // if the rtesult is a pending promise, wait for it to resolve
             if (result instanceof Promise) {
               result.then(res => {
-                console.log("this.mapper result", res);
+                completedCount++;
                 if (Array.isArray(res)) {
                   mappedResults.push(...res);
                 } else {
@@ -88,7 +86,8 @@ function mr(config) {
               });
               return;
             } 
-            
+
+            completedCount++;
             // collect map results
             if (Array.isArray(result)) {
               mappedResults.push(...result);
@@ -99,6 +98,7 @@ function mr(config) {
             // once all keys processed, store results
             if (completedCount === keys.length) {
               const mapResultKey = intermediateId + '_map';
+              console.log("storing map results, completedCount", completedCount);
               distribution.local.store.put(mappedResults, mapResultKey, (putErr) => {
                 callback(putErr, mappedResults);
               });

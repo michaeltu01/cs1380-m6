@@ -90,7 +90,13 @@ function createOrchestrator() {
   //call the map reduce
   function executeIndexing() {
     // get URLs to crawl -- for now assume we have a list?
-    const seedURLs = ['https://cs.brown.edu/courses/csci1380/sandbox/1/']
+    const seedURLs = ['https://cs.brown.edu/courses/csci1380/sandbox/1/', 
+      'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1a/index.html',
+      'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/index.html',
+      'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1c/index.html',
+      'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/fact_4/index.html',
+      'https://cs.brown.edu/courses/csci1380/sandbox/1/level_1b/fact_3/index.html',
+    ]
     console.log(mapperFunction)
     const serializedFunction = distribution.util.serialize(mapperFunction);
     // console.log('Serialized function:', serializedFunction);
