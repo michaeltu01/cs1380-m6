@@ -186,8 +186,8 @@ function mr(config) {
     }
     
     const serviceId = 'mr-' + jobId;
-    console.log('mapReduceService', mapReduceService);
-    console.log('mapReduceService mapper', mapReduceService.mapper);
+    // console.log('mapReduceService', mapReduceService);
+    // console.log('mapReduceService mapper', mapReduceService.mapper);
     
     // register service on nodes
     distribution[context.gid].routes.put(mapReduceService, serviceId, () => {
@@ -205,12 +205,12 @@ function mr(config) {
         
         for (const nodeId in nodeGroup) {
           const payload = [keyDistribution[nodeId], context.gid, jobId];
-          console.log("sending map request to node", nodeId, payload);
+          // console.log("sending map request to node", nodeId, payload);
           distribution.local.comm.send(payload, {
             node: nodeGroup[nodeId],
             ...mapRequest
           }, () => {
-            console.log("map request complete for node", nodeId);
+            // console.log("map request complete for node", nodeId);
             nodesCompleted++;
             
             // when all map operations complete, start shuffle
@@ -219,15 +219,15 @@ function mr(config) {
                 service: serviceId,
                 method: 'shuffle'
               };
-              console.log("sending shuffle request for node", nodeId, context.gid, jobId);
+              // console.log("sending shuffle request for node", nodeId, context.gid, jobId);
               distribution[context.gid].comm.send([context.gid, jobId], shuffleRequest, () => {
-                console.log("shuffle request complete for node", nodeId);
+                // console.log("shuffle request complete for node", nodeId);
                 // after shuffle, reduce
                 const reduceRequest = {
                   service: serviceId,
                   method: 'reduce'
                 };
-                console.log("sending reduce request for node", nodeId);
+                // console.log("sending reduce request for node", nodeId);
                 distribution[context.gid].comm.send([context.gid, jobId], reduceRequest, (err, reduceResults) => {
                   const finalResults = [];
                   
@@ -238,7 +238,7 @@ function mr(config) {
                   }
                   
                   // return final results
-                  console.log("finalResults", finalResults);
+                  // console.log("finalResults", finalResults);
                   cb(null, finalResults);
                 });
               });

@@ -6,6 +6,8 @@ async function mapperFunction(key, value, require) {
     const natural = require('natural');
     const https = require('https');
     // key is URL, <nothing -- unicorns>
+    console.log("URL: ", key);
+    const startMapTime = process.hrtime();
     try {
         // fetch the page content
         // const response = await fetch(key, { method: "GET" });
@@ -43,13 +45,23 @@ async function mapperFunction(key, value, require) {
         const notAsciiRegex = /[^\x00-\x7F]/g;
 
         // Read in the stopword corpora
-        const STOPWORDS_PATH = 'non-distribution/d/stopwords.txt';
-        let stopwords = [];
+        // const STOPWORDS_PATH = 'non-distribution/d/stopwords.txt';
+        // let stopwords = [];
+        // try {
+        //     const data = fs.readFileSync(STOPWORDS_PATH, {encoding: 'utf8', flag: 'r'}).toString();
+        //     stopwords = data.split('\n');
+        // } catch (err) {
+        //     console.error('Error reading stopwords.txt:', err);
+        //     return;
+        // }
+
+        const WHITELIST_PATH = 'non-distribution/engine/whitelist.txt';
+        let whitelist = [];
         try {
-            const data = fs.readFileSync(STOPWORDS_PATH, {encoding: 'utf8', flag: 'r'}).toString();
-            stopwords = data.split('\n');
+            const data = fs.readFileSync(WHITELIST_PATH, {encoding: 'utf8', flag: 'r'}).toString();
+            whitelist = data.split('\n');
         } catch (err) {
-            console.error('Error reading stopwords.txt:', err);
+            console.error('Error reading whitelist.txt:', err);
             return;
         }
         const stemmer = natural.PorterStemmer;
@@ -59,11 +71,11 @@ async function mapperFunction(key, value, require) {
             .toLowerCase()
             .replaceAll(notAsciiRegex, '')
             .split('\n')
-            .filter((word) => !(stopwords.includes(word)))
+            .filter((word) => whitelist.includes(word))
             .filter((word) => word !== "")
             .map((word) => stemmer.stem(word))
             .join('\n');
-        console.log(text);
+        // console.log(text);
         // After processing all the text, then stem everything
         // stemmedText = stemmer.stem(text.split('\n')).join('\n');
         
@@ -93,10 +105,14 @@ async function mapperFunction(key, value, require) {
             out[gram[0]] = [[key, gram[1]]];
             results.push(out);
         }
+        const endMapTime = process.hrtime(startMapTime);
+        console.log(`Mapping ${key} completed in ${endMapTime[0]}s ${endMapTime[1] / 1000000}ms`);
         return results;
     }
     catch (err) {
         console.error('Error in mapper function', err);
+        const endMapTime = process.hrtime(startMapTime);
+        console.log(`Mapping ${key} completed in ${endMapTime[0]}s ${endMapTime[1] / 1000000}ms`);
         return [];
     }
 }

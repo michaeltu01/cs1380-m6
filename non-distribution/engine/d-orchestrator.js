@@ -5,17 +5,10 @@ let reducerFunction = distribution.util.require("./non-distribution/engine/reduc
 const queryService = distribution.util.require("./non-distribution/engine/query.js").createQueryService(distribution, distribution.util.require);
 
 function createOrchestrator() {
-  /* 
-    // Configure remote nodes
-  const remoteN1 = {ip: '3.142.77.140', port: 1234}; // FIXME: public ips of aws node, port 1234 (allow in security group)
-  const remoteN2 = {ip: '3.128.188.45', port: 1234};
-  const remoteN3 = {ip: '3.14.28.177', port: 1234};
-  */
-  // Configure local nodes
-  console.log('Starting orchestrator...');
-  const remoteN1 = {ip: '127.0.0.1', port: 7110};
-  const remoteN2 = {ip: '127.0.0.1', port: 7111};
-  const remoteN3 = {ip: '127.0.0.1', port: 7112};
+  // Configure remote nodes
+  const remoteN1 = {ip: '18.191.11.178', port: 1234}; // FIXME: public ips of aws node, port 1234 (allow in security group)
+  const remoteN2 = {ip: '3.147.205.225', port: 1234};
+  const remoteN3 = {ip: '3.148.228.56', port: 1234};
   const indexGroupId = 'indexerGroup';
   
   // Ensure that the nodes are stopped before attempting to spawn them
@@ -102,9 +95,7 @@ function createOrchestrator() {
     
     // get the seed urls by reading from test-urls.txt
     const fs = require('fs');
-    const seedURLs = fs.readFileSync('non-distribution/engine/urls.txt', 'utf8')
-                          .split('\n')
-                          .filter(url => url !== "");
+    const seedURLs = fs.readFileSync('non-distribution/engine/urls.txt', 'utf8').split('\n');
     // console.log(seedURLs);
     // console.log(mapperFunction)
     const serializedFunction = distribution.util.serialize(mapperFunction);
@@ -122,16 +113,12 @@ function createOrchestrator() {
           console.error('Error executing indexing map-reduce:', err);
         }
         // localIndexResults is an Array<object>
-        const startTimeStore = process.hrtime();
-        console.log('Storing index results...');
-        let totalResults = 0;
         localIndexResults.forEach((result) => {
           /*
             const out = {};
             out[key] = entries;
             return out;
           */
-          totalResults += Object.keys(result).length;
           Object.entries(result).forEach(([key, value]) => {
             distribution.local.store.put(value, key, (err) => {
               if (err) {
@@ -140,10 +127,7 @@ function createOrchestrator() {
               // console.log('Index result stored successfully:', key, value);
             });
           });
-        }
-        const endStoreTime = process.hrtime(startTimeStore);
-        console.log(`Index results stored in ${endStoreTime[0]}s ${endStoreTime[1] / 1000000}ms`);
-      );
+      });
       const endIndexTime = process.hrtime(startTime);
       console.log(`Indexing completed in ${endIndexTime[0]}s ${endIndexTime[1] / 1000000}ms`);
       console.log('all done');
