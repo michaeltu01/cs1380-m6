@@ -108,6 +108,8 @@ function mr(config) {
       },
       
       shuffle: function(storageGroup, intermediateId, callback) {
+        const startShuffleTime = process.hrtime();
+        console.log(`Starting shuffle for ${intermediateId}...`);
         const mapResultKey = intermediateId + '_map';
         distribution.local.store.get(mapResultKey, (err, mappedData) => {
           if (err) {
@@ -128,6 +130,8 @@ function mr(config) {
               entriesProcessed++;
               
               if (entriesProcessed === mappedData.length) {
+                const endShuffleTime = process.hrtime(startShuffleTime);
+                console.log(`Shuffle completed for ${intermediateId} in ${endShuffleTime[0]}s ${endShuffleTime[1] / 1000000}ms`);
                 callback(null, mappedData);
               }
             });
@@ -140,6 +144,8 @@ function mr(config) {
           key: null,
           gid: groupId
         }, (err, keys) => {
+          const startReduceTime = process.hrtime();
+          console.log(`Starting reduce for ${intermediateId}...`);
           if (keys.length === 0) {
             callback(null, null);
             return;
@@ -160,6 +166,8 @@ function mr(config) {
               
               // when all keys processed, return final results
               if (keysProcessed === keys.length) {
+                const endReduceTime = process.hrtime(startReduceTime);
+                console.log(`Reduce completed for ${intermediateId} in ${endReduceTime[0]}s ${endReduceTime[1] / 1000000}ms`);
                 callback(null, reducedResults);
               }
             });

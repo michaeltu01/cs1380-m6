@@ -10,19 +10,9 @@ function createOrchestrator() {
   const remoteN2 = {ip: '3.147.205.225', port: 1234};
   const remoteN3 = {ip: '3.148.228.56', port: 1234};
   const indexGroupId = 'indexerGroup';
-  
-  // Ensure that the nodes are stopped before attempting to spawn them
-  const remote = {service: 'status', method: 'stop'};
-  remote.node = remoteN1;
-  distribution.local.comm.send([], remote, (e, v) => {
-      remote.node = remoteN2;
-      distribution.local.comm.send([], remote, (e, v) => {
-          remote.node = remoteN3;
-          distribution.local.comm.send([], remote, (e, v) => {
-              spawnNodes();
-          });
-      });
-  });
+
+  // Begin creating the orchestrator
+  spawnNodes();
 
   // Add the nodes to a group + create groups on nodes
   function groupInstantiation() {
@@ -54,31 +44,7 @@ function createOrchestrator() {
   function spawnNodes() {
     distribution.node.start((server) => {
       localServer = server;
-
-      distribution.local.status.spawn(remoteN1, (e, v) => {
-        distribution.local.status.spawn(remoteN2, (e, v) => {
-          distribution.local.status.spawn(remoteN3, (e, v) => {
-            groupInstantiation();
-          });
-        });
-      });
-    });
-  }
-
-  function stopNodes() {
-    distribution.indexerGroup.status.stop((e, v) => {
-      const remote = {service: 'status', method: 'stop'};
-      remote.node = remoteN1;
-      distribution.local.comm.send([], remote, (e, v) => {
-        remote.node = remoteN2;
-        distribution.local.comm.send([], remote, (e, v) => {
-          remote.node = remoteN3;
-          distribution.local.comm.send([], remote, (e, v) => {
-              // localServer.close();
-              return;
-          });
-        });
-      });
+      groupInstantiation();
     });
   }
 
@@ -131,7 +97,6 @@ function createOrchestrator() {
       const endIndexTime = process.hrtime(startTime);
       console.log(`Indexing completed in ${endIndexTime[0]}s ${endIndexTime[1] / 1000000}ms`);
       console.log('all done');
-      stopNodes();
       // call the cli loop
       const startTimeCLI = process.hrtime();
       console.log('Starting search CLI...');
