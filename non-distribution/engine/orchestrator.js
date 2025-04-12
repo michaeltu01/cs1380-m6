@@ -151,7 +151,7 @@ function createOrchestrator() {
       // call the cli loop
       const startTimeCLI = process.hrtime();
       console.log('Starting search CLI...');
-      queryService.searchIndex("soup", (err, results) => {
+      queryService.searchIndex("chicken", (err, results) => {
         if (err) {
           console.error('Error searching index:', err);
         } else {

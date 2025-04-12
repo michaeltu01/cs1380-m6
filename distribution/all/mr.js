@@ -131,7 +131,7 @@ function mr(config) {
               
               if (entriesProcessed === mappedData.length) {
                 const endShuffleTime = process.hrtime(startShuffleTime);
-                console.log(`Shuffle completed for ${intermediateId} in ${endShuffleTime[0]}s ${endShuffleTime[1] / 1000000}ms`);
+                console.log(`Shuffle completed for ${entriesProcessed} entries in ${endShuffleTime[0]}s ${endShuffleTime[1] / 1000000}ms`);
                 callback(null, mappedData);
               }
             });
@@ -167,7 +167,7 @@ function mr(config) {
               // when all keys processed, return final results
               if (keysProcessed === keys.length) {
                 const endReduceTime = process.hrtime(startReduceTime);
-                console.log(`Reduce completed for ${intermediateId} in ${endReduceTime[0]}s ${endReduceTime[1] / 1000000}ms`);
+                console.log(`Reduce processed ${keysProcessed} in ${endReduceTime[0]}s ${endReduceTime[1] / 1000000}ms`);
                 callback(null, reducedResults);
               }
             });
@@ -246,7 +246,7 @@ function mr(config) {
                   }
                   
                   // return final results
-                  // console.log("finalResults", finalResults);
+                  console.log("finalResults", finalResults);
                   cb(null, finalResults);
                 });
               });
