@@ -145,7 +145,8 @@ function mr(config) {
           gid: groupId
         }, (err, keys) => {
           const startReduceTime = process.hrtime();
-          console.log(`Starting reduce for ${intermediateId}...`);
+          console.log(`Starting reduce for ${keys.length}...`);
+          console.log("keys: ", keys);
           if (keys.length === 0) {
             callback(null, null);
             return;
