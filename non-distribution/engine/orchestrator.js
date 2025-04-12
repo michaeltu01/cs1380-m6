@@ -141,9 +141,9 @@ function createOrchestrator() {
             });
           });
         }
-        const endStoreTime = process.hrtime(startTimeStore);
-        console.log(`Index results stored in ${endStoreTime[0]}s ${endStoreTime[1] / 1000000}ms`);
       );
+      const endStoreTime = process.hrtime(startTimeStore);
+      console.log(`Stored ${totalResults} index results in ${endStoreTime[0]}s ${endStoreTime[1] / 1000000}ms`);
       const endIndexTime = process.hrtime(startTime);
       console.log(`Indexing completed in ${endIndexTime[0]}s ${endIndexTime[1] / 1000000}ms`);
       console.log('all done');
