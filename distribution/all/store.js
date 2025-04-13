@@ -2,11 +2,11 @@
 function getNode(context, key, callback) {
   // get all nids in the group
   global.distribution[context.gid].status.get('nid', (error, nids) => {
-    if (JSON.stringify(error) !== '{}') {
-        console.error(`Error getting node IDs: ${JSON.stringify(error)}`);
-        callback(null);
-        return;
-    }
+    // if (JSON.stringify(error) !== '{}') {
+    //     console.error(`Error getting node IDs: ${JSON.stringify(error)}`);
+    //     callback(null);
+    //     return;
+    // }
 
     // console.log(`(${context.gid}) Node IDs`, nids);
     const nodeIds = Object.values(nids);
