@@ -24,6 +24,7 @@ function getNode(context, key, callback) {
         callback(null); 
         return;
       }
+      console.log(`Nodes`, nodes);
       console.log(`Returning node for ${sid}`, nodes[sid]);
       callback(nodes[sid]);
     });
