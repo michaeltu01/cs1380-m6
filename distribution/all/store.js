@@ -9,9 +9,11 @@ function getNode(context, key, callback) {
         return;
     }
 
+    console.log(`(${context.gid}) Node IDs`, nids);
     const nodeIds = Object.values(nids);
     // convert key to KID
     const kid = global.distribution.util.id.getID(key);
+    console.log(`kid:`, kid);
     // use hash function to get target node ID
     const targetNid = context.hash(kid, nodeIds);
     // get short ID (first 5 chars)
@@ -24,7 +26,7 @@ function getNode(context, key, callback) {
         callback(null); 
         return;
       }
-      console.log(`Nodes`, nodes);
+      console.log(`(local node sees) Nodes`, nodes);
       console.log(`Returning node for ${sid}`, nodes[sid]);
       callback(nodes[sid]);
     });

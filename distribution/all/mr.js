@@ -119,13 +119,13 @@ function mr(config) {
           
           let entriesProcessed = 0;
 
-          console.log(mappedData);
+          // console.log(mappedData);
           
           // group data by keys for reduction
           mappedData.forEach(entry => {
             const key = Object.keys(entry)[0];
-            console.log(`Key: ${key} (line 127)`);
-            console.log(`Entry: `, entry[key]);
+            // console.log(`Key: ${key} (line 127)`);
+            // console.log(`Entry: `, entry[key]);
             // console.log(`Entry (destructured): `, entry[key][0]);
             // console.log(`Storage group: ${storageGroup}, key: ${key}`);
 
