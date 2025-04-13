@@ -134,10 +134,11 @@ function mr(config) {
             }
 
             distribution[storageGroup].store.put(entry[key], key, (err, value) => {
-              // if (err) {
-              //   console.error(`Error storing entry ${key}:`, err);
-              // }
-              // console.log(`[${storageGroup}] Stored ${key}, ${value}`);
+              if (err) {
+                console.error(`Error storing entry ${key}:`, err);
+              } else {
+                // console.log(`[${storageGroup}] Stored ${key}, ${value}`);
+              }
               entriesProcessed++;
               
               if (entriesProcessed === mappedData.length) {
@@ -153,10 +154,11 @@ function mr(config) {
       },
       
       reduce: function(groupId, intermediateId, callback) {
-        distribution.local.store.get(null, (err, keys) => {
+        const storeConfig = {gid: groupId, key: null};
+        distribution.local.store.get(storeConfig, (err, keys) => {
           const startReduceTime = process.hrtime();
-          console.log(`Starting reduce for ${keys.length}...`);
-          console.log("keys: ", keys);
+          // console.log(`Starting reduce for ${keys.length}...`);
+          // console.log("keys: ", keys);
           if (keys.length === 0) {
             callback(null, null);
             return;
@@ -164,10 +166,10 @@ function mr(config) {
           
           let reducedResults = [];
           let keysProcessed = 0;
-          
           keys.forEach(key => {
-            distribution.local.store.get(key, (err, values) => {
-              console.log(`Reducing ${key}: `, values);
+            const localStoreGetConfig = {gid: groupId, key: key};
+            distribution.local.store.get(localStoreGetConfig, (err, values) => {
+              // console.log(`Reducing ${key}: `, values);
               // apply reducer to grouped values
               const result = this.reducer(key, values);
               reducedResults = reducedResults.concat(result);

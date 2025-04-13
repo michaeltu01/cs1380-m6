@@ -9,7 +9,7 @@ function getNode(context, key, callback) {
         return;
     }
 
-    console.log(`(${context.gid}) Node IDs`, nids);
+    // console.log(`(${context.gid}) Node IDs`, nids);
     const nodeIds = Object.values(nids);
     // convert key to KID
     const kid = global.distribution.util.id.getID(key);
@@ -26,11 +26,33 @@ function getNode(context, key, callback) {
         callback(null); 
         return;
       }
-      console.log(`(local node sees) Nodes`, nodes);
-      console.log(`Returning node for ${sid}`, nodes[sid]);
+      // console.log(`(local node sees) Nodes`, nodes);
+      // console.log(`Returning node for ${sid}`, nodes[sid]);
       callback(nodes[sid]);
     });
   });
+
+  // global.distribution.local.groups.get(context.gid, (error, nodesMap) => {
+  //   if (error) {
+  //       console.error('Error getting node IDs', error);
+  //       callback(null);
+  //       return;
+  //   }
+
+  //   const nids = Object.values(nodesMap).map(node => global.distribution.util.id.getNID(node));
+  //   console.log(`(${context.gid}) Node IDs`, nids);
+  //   // convert key to KID
+  //   const kid = global.distribution.util.id.getID(key);
+  //   console.log(`kid:`, kid);
+  //   // use hash function to get target node ID
+  //   const targetNid = context.hash(kid, nids);
+  //   // get short ID (first 5 chars)
+  //   const sid = targetNid.substring(0, 5);
+    
+  //   console.log(`(local node sees) Nodes`, nodesMap);
+  //   console.log(`Returning node for ${sid}`, nodes[sid]);
+  //   callback(nodesMap[sid]);
+  // });
 }
 
 function store(config) {

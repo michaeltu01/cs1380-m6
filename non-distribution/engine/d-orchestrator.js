@@ -6,10 +6,14 @@ const queryService = distribution.util.require("./non-distribution/engine/query.
 
 function createOrchestrator() {
   // Configure remote nodes
-  const remoteN1 = { ip: '18.224.66.224', port: 1234}; // FIXME: public ips of aws node, port 1234 (allow in security group)
-  const remoteN2 = { ip: '3.141.197.189', port: 1234};
+  const remoteN1 = { ip: '18.224.66.224', port: 1236}; // FIXME: public ips of aws node, port 1234 (allow in security group)
+  const remoteN2 = { ip: '3.141.197.189', port: 1235};
   const remoteN3 = { ip: '18.116.15.184', port: 1234};
   const indexGroupId = 'indexerGroup';
+
+  const remoteN2local = { ip: '0.0.0.0', port: 1235};
+  const remoteN1local = { ip: '0.0.0.0', port: 1236}; // FIXME: public ips of aws node, port 1234 (allow in security group)
+  const remoteN3local = { ip: '0.0.0.0', port: 1234};
 
   // Begin creating the orchestrator
   spawnNodes();
@@ -29,9 +33,12 @@ function createOrchestrator() {
           console.error('Error creating indexer group:', err);
           return;
         }
-
-        distribution[indexGroupId].groups.put(indexerGroupConfig, indexerGroup, (err) => {
-          // Do stuff
+        
+        const indexerGroupLocal = {};
+        indexerGroupLocal[id.getSID(remoteN1local)] = remoteN1;
+        indexerGroupLocal[id.getSID(remoteN2local)] = remoteN2;
+        indexerGroupLocal[id.getSID(remoteN3local)] = remoteN3;
+        distribution[indexGroupId].groups.put(indexerGroupConfig, indexerGroupLocal, (err) => {
           console.log(`Indexer group "${indexGroupId}" created on coordinator and group nodes`);
           
           //call
