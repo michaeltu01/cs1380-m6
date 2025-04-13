@@ -134,9 +134,9 @@ function mr(config) {
             }
 
             distribution[storageGroup].store.put(entry[key], key, (err, value) => {
-              if (err) {
-                console.error(`Error storing entry ${key}:`, err);
-              }
+              // if (err) {
+              //   console.error(`Error storing entry ${key}:`, err);
+              // }
               // console.log(`[${storageGroup}] Stored ${key}, ${value}`);
               entriesProcessed++;
               
