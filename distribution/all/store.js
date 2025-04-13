@@ -3,6 +3,7 @@ function getNode(context, key, callback) {
   // get all nids in the group
   global.distribution[context.gid].status.get('nid', (error, nids) => {
     if (JSON.stringify(error) !== '{}') {
+        console.error(`Error getting node IDs: ${JSON.stringify(error)}`);
         callback(null);
         return;
     }
@@ -19,11 +20,15 @@ function getNode(context, key, callback) {
     // look up actual node info from group
     global.distribution.local.groups.get(context.gid, (error, nodes) => {
       if (error) {
+        console.error(`Error getting nodes for group ${context.gid}: ${JSON.stringify(error)}`);
         callback(null); 
         return;
       }
-      // console.log(`(local node sees) Nodes`, nodes);
-      // console.log(`Returning node for ${sid}`, nodes[sid]);
+
+      if (!nodes[sid]) {
+        console.log(`(local node sees) Nodes`, nodes);
+        console.log(`Returning node for ${sid}`, nodes[sid]);
+      }
       callback(nodes[sid]);
     });
   });
