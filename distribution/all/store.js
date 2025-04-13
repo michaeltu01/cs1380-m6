@@ -1,10 +1,8 @@
 // get the node responsible for a key
 function getNode(context, key, callback) {
-  console.log('getNode inputs', context, key);
   // get all nids in the group
   global.distribution[context.gid].status.get('nid', (error, nids) => {
     if (JSON.stringify(error) !== '{}') {
-        console.error('Error getting node IDs', JSON.stringify(error));
         callback(null);
         return;
     }
@@ -13,7 +11,6 @@ function getNode(context, key, callback) {
     const nodeIds = Object.values(nids);
     // convert key to KID
     const kid = global.distribution.util.id.getID(key);
-    console.log(`kid:`, kid);
     // use hash function to get target node ID
     const targetNid = context.hash(kid, nodeIds);
     // get short ID (first 5 chars)
@@ -22,7 +19,6 @@ function getNode(context, key, callback) {
     // look up actual node info from group
     global.distribution.local.groups.get(context.gid, (error, nodes) => {
       if (error) {
-        console.error('Error getting nodes', error);
         callback(null); 
         return;
       }
