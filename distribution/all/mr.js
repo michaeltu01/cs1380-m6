@@ -136,6 +136,8 @@ function mr(config) {
               }
             });
           });
+
+          //if there are no entries, this breaks
         });
       },
       
