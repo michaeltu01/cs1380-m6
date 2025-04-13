@@ -6,9 +6,9 @@ const queryService = distribution.util.require("./non-distribution/engine/query.
 
 function createOrchestrator() {
   // Configure remote nodes
-  const remoteN1 = {ip: '18.191.11.178', port: 1234}; // FIXME: public ips of aws node, port 1234 (allow in security group)
-  const remoteN2 = {ip: '3.148.252.26', port: 1234};
-  const remoteN3 = {ip: '52.14.31.82', port: 1234};
+  const remoteN1 = { ip: '18.224.66.224', port: 1234}; // FIXME: public ips of aws node, port 1234 (allow in security group)
+  const remoteN2 = { ip: '3.141.197.189', port: 1234};
+  const remoteN3 = { ip: '18.116.15.184', port: 1234};
   const indexGroupId = 'indexerGroup';
 
   // Begin creating the orchestrator
