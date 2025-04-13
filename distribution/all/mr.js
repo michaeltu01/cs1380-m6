@@ -66,7 +66,7 @@ function mr(config) {
             // console.log('this', this);
             // console.log('this.mapper', this.mapper);
             const result = this.mapper(key, value, distribution.util.require);
-            // if the rtesult is a pending promise, wait for it to resolve
+            // if the result is a pending promise, wait for it to resolve
             if (result instanceof Promise) {
               result.then(res => {
                 completedCount++;
@@ -123,10 +123,13 @@ function mr(config) {
           mappedData.forEach(entry => {
             const key = Object.keys(entry)[0];
             
-            distribution[storageGroup].mem.put(entry[key], {
-              key: key,
-              action: 'append'
-            }, () => {
+            console.log(`Storage group: ${storageGroup}, key: ${key}`);
+
+            if (!distribution[storageGroup]) {
+              console.error(`Storage group ${storageGroup} not found`);
+            }
+
+            distribution[storageGroup].store.put(entry[key], key, () => {
               entriesProcessed++;
               
               if (entriesProcessed === mappedData.length) {
@@ -142,10 +145,7 @@ function mr(config) {
       },
       
       reduce: function(groupId, intermediateId, callback) {
-        distribution.local.mem.get({
-          key: null,
-          gid: groupId
-        }, (err, keys) => {
+        distribution.local.store.get(null, (err, keys) => {
           const startReduceTime = process.hrtime();
           console.log(`Starting reduce for ${keys.length}...`);
           console.log("keys: ", keys);
@@ -158,10 +158,8 @@ function mr(config) {
           let keysProcessed = 0;
           
           keys.forEach(key => {
-            distribution.local.mem.get({
-              key: key,
-              gid: groupId
-            }, (err, values) => {
+            distribution.local.store.get(key, (err, values) => {
+              console.log(`Reducing ${key}: `, values);
               // apply reducer to grouped values
               const result = this.reducer(key, values);
               reducedResults = reducedResults.concat(result);
