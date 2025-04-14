@@ -55,102 +55,150 @@ function mr(config) {
           callback(null, []);
           return;
         }
-        
-        const mappedResults = [];
-        let completedCount = 0;
-        
-        keys.forEach(key => {
-          distribution[storageGroup].store.get(key, (err, value) => {
-            
-            // apply mapper to kvp
-            // console.log('this', this);
-            // console.log('this.mapper', this.mapper);
-            const result = this.mapper(key, value, distribution.util.require);
-            // if the result is a pending promise, wait for it to resolve
-            if (result instanceof Promise) {
-              result.then(res => {
-                completedCount++;
-                if (Array.isArray(res)) {
-                  mappedResults.push(...res);
-                } else {
-                  mappedResults.push(res);
-                }
-                
-                // once all keys processed, store results
-                if (completedCount === keys.length) {
-                  const mapResultKey = intermediateId + '_map';
-                  distribution.local.store.put(mappedResults, mapResultKey, (putErr) => {
-                    callback(putErr, mappedResults);
-                  });
-                }
-              });
-              return;
-            } 
 
-            completedCount++;
-            // collect map results
-            if (Array.isArray(result)) {
-              mappedResults.push(...result);
-            } else {
-              mappedResults.push(result);
-            }
-            
-            // once all keys processed, store results
-            if (completedCount === keys.length) {
-              const mapResultKey = intermediateId + '_map';
-              console.log("storing map results, completedCount", completedCount);
-              distribution.local.store.put(mappedResults, mapResultKey, (putErr) => {
-                callback(putErr, mappedResults);
-              });
-            }
+        // batch the keys
+        const BATCH_SIZE = 10;
+        const batches = [];
+        if (keys.length > BATCH_SIZE) {
+          for (let i = 0; i < keys.length; i += BATCH_SIZE) {
+            batches.push(keys.slice(i, i + BATCH_SIZE));
+          }
+        } else {
+          batches.push(keys);
+        }
+
+        const processBatch = (batchIndex) => {
+          const mappedResults = [];
+          let completedCount = 0;
+
+          const batchKeys = batches[batchIndex];
+          batchKeys.forEach(key => {
+            distribution[storageGroup].store.get(key, (err, value) => {
+              
+              // apply mapper to kvp
+              // console.log('this', this);
+              // console.log('this.mapper', this.mapper);
+              const result = this.mapper(key, value, distribution.util.require);
+              // if the result is a pending promise, wait for it to resolve
+              if (result instanceof Promise) {
+                result.then(res => {
+                  completedCount++;
+                  if (Array.isArray(res)) {
+                    mappedResults.push(...res);
+                  } else {
+                    mappedResults.push(res);
+                  }
+                  
+                  // once all keys processed, store results
+                  if (completedCount === batchKeys.length) {
+                    const mapResultKey = intermediateId + `_map_${batchIndex}`;
+                    distribution.local.store.put(mappedResults, mapResultKey, (putErr) => {
+                      if (batchIndex + 1 < batches.length) {
+                        processBatch(batchIndex + 1);
+                      } else {
+                        callback(putErr, mappedResults);
+                      }
+                    });
+                  }
+                });
+                return;
+              } 
+  
+              completedCount++;
+              // collect map results
+              if (Array.isArray(result)) {
+                mappedResults.push(...result);
+              } else {
+                mappedResults.push(result);
+              }
+              
+              // once all keys processed, store results
+              if (completedCount === batchKeys.length) {
+                const mapResultKey = intermediateId + `_map_${batchIndex}`;
+                console.log("storing map results, completedCount", completedCount);
+                distribution.local.store.put(mappedResults, mapResultKey, (putErr) => {
+                  if (batchIndex + 1 < batches.length) {
+                    processBatch(batchIndex + 1);
+                  } else {
+                    callback(putErr, mappedResults);
+                  }
+                });
+              }
+            });
           });
-        });
+        }
+
+        let startingBatchIndex = 0;
+        processBatch(startingBatchIndex);
       },
       
       shuffle: function(storageGroup, intermediateId, callback) {
         const startShuffleTime = process.hrtime();
         console.log(`Starting shuffle for ${intermediateId}...`);
-        const mapResultKey = intermediateId + '_map';
-        distribution.local.store.get(mapResultKey, (err, mappedData) => {
-          if (err) {
-            callback(err, {});
+
+        const shuffleMapBatch = (mapBatchIndex) => {
+          const mapBatchKey = mapBatchKeys[mapBatchIndex];
+          distribution.local.store.get(mapBatchKey, (err, mappedData) => {
+            if (err) {
+              callback(err, {});
+              return;
+            }
+            
+            let entriesProcessed = 0;
+  
+            // console.log(mappedData);
+            
+            // group data by keys for reduction
+            mappedData.forEach(entry => {
+              const key = Object.keys(entry)[0];
+              // console.log(`Key: ${key} (line 127)`);
+              // console.log(`Entry: `, entry[key]);
+              // console.log(`Entry (destructured): `, entry[key][0]);
+              // console.log(`Storage group: ${storageGroup}, key: ${key}`);
+  
+              if (!distribution[storageGroup]) {
+                console.error(`Storage group ${storageGroup} not found`);
+              }
+  
+              distribution[storageGroup].store.put(entry[key], key, (err, value) => {
+                if (err) {
+                  console.error(`Error storing entry ${key}:`, err);
+                } else {
+                  // console.log(`[${storageGroup}] Stored ${key}, ${value}`);
+                }
+                entriesProcessed++;
+                
+                if (entriesProcessed === mappedData.length) {
+                  if (mapBatchIndex + 1 < mapBatchKeys.length) {
+                    shuffleMapBatch(mapBatchIndex + 1);
+                  } else {
+                    const endShuffleTime = process.hrtime(startShuffleTime);
+                    console.log(`Shuffle completed for ${entriesProcessed} entries in ${endShuffleTime[0]}s ${endShuffleTime[1] / 1000000}ms`);
+                    callback(null, mappedData);
+                  }
+                }
+              });
+            });
+  
+            //if there are no entries, this breaks
+          });
+        };
+
+        // Grab all the local keys and retrieve the keys that are map results
+        let mapBatchKeys = [];
+        distribution.local.store.get(null, (err, keys) => {
+          mapBatchKeys = keys.filter(key => key.startsWith(intermediateId + '_map_'));
+          if (mapBatchKeys.length === 0) {
+            callback(new Error(`No map results found.`), {});
             return;
           }
-          
-          let entriesProcessed = 0;
+          console.log(`Found ${mapBatchKeys.length} map batches for shuffle.`);
 
-          // console.log(mappedData);
-          
-          // group data by keys for reduction
-          mappedData.forEach(entry => {
-            const key = Object.keys(entry)[0];
-            // console.log(`Key: ${key} (line 127)`);
-            // console.log(`Entry: `, entry[key]);
-            // console.log(`Entry (destructured): `, entry[key][0]);
-            // console.log(`Storage group: ${storageGroup}, key: ${key}`);
-
-            if (!distribution[storageGroup]) {
-              console.error(`Storage group ${storageGroup} not found`);
-            }
-
-            distribution[storageGroup].store.put(entry[key], key, (err, value) => {
-              if (err) {
-                console.error(`Error storing entry ${key}:`, err);
-              } else {
-                // console.log(`[${storageGroup}] Stored ${key}, ${value}`);
-              }
-              entriesProcessed++;
-              
-              if (entriesProcessed === mappedData.length) {
-                const endShuffleTime = process.hrtime(startShuffleTime);
-                console.log(`Shuffle completed for ${entriesProcessed} entries in ${endShuffleTime[0]}s ${endShuffleTime[1] / 1000000}ms`);
-                callback(null, mappedData);
-              }
-            });
-          });
-
-          //if there are no entries, this breaks
+          // Start shuffling the first batch
+          const startingMapBatchIndex = 0;
+          shuffleMapBatch(startingMapBatchIndex);
         });
+
       },
       
       reduce: function(groupId, intermediateId, callback) {
@@ -172,7 +220,7 @@ function mr(config) {
               // console.log(`Reducing ${key}: `, values);
               // apply reducer to grouped values
               const result = this.reducer(key, values);
-              reducedResults = reducedResults.concat(result);
+              if (result) { reducedResults = reducedResults.concat(result); }
               keysProcessed++;
               
               // when all keys processed, return final results

@@ -1,9 +1,0 @@
-hello world
-hello world
-world hello
-test hello
-hyphenated-word
-contains*star
-contains *star
-this is a very long sequence of words that should get truncated to a 3 gram
-this is a not 3 gram but even after truncation it should be a separate entry

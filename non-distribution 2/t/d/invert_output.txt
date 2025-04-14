@@ -1,8 +1,0 @@
-contains *star | 1 | http://test.com
-contains*star | 1 | http://test.com
-hello world | 2 | http://test.com
-hyphenated-word | 1 | http://test.com
-test hello | 1 | http://test.com
-this is a | 1 | http://test.com
-this is a | 1 | http://test.com
-world hello | 1 | http://test.com

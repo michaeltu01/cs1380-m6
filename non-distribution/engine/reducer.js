@@ -1,7 +1,10 @@
 /* REDUCER */
 
 function reducerFunction(key, values) {
-    // console.log(key, values)
+    if (!values || values.length === 0) {
+        console.log(key, values);
+        return;  // NOTE: Need to return null for the reduce result to not show up in the final reduceResults
+    }
     // input: ngram, list of [url, 1]
     // output: <ngram, sorted results of [url, cnt]>
 
