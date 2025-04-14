@@ -55,7 +55,8 @@ function mr(config) {
           callback(null, []);
           return;
         }
-
+        
+        const startMapTime = process.hrtime();
         // batch the keys
         const BATCH_SIZE = 10;
         const batches = [];
@@ -66,6 +67,8 @@ function mr(config) {
         } else {
           batches.push(keys);
         }
+
+        let totalKeysProcessed = 0;
 
         const processBatch = (batchIndex) => {
           const mappedResults = [];
@@ -93,9 +96,12 @@ function mr(config) {
                   if (completedCount === batchKeys.length) {
                     const mapResultKey = intermediateId + `_map_${batchIndex}`;
                     distribution.local.store.put(mappedResults, mapResultKey, (putErr) => {
+                      totalKeysProcessed += completedCount;
                       if (batchIndex + 1 < batches.length) {
                         processBatch(batchIndex + 1);
                       } else {
+                        const endMapTime = process.hrtime(startMapTime);
+                        console.log(`[${global.moreStatus.sid}] Mapped ${totalKeysProcessed} completed in ${endMapTime[0]}s ${endMapTime[1] / 1000000}ms`);
                         callback(putErr, mappedResults);
                       }
                     });
@@ -117,9 +123,12 @@ function mr(config) {
                 const mapResultKey = intermediateId + `_map_${batchIndex}`;
                 console.log("storing map results, completedCount", completedCount);
                 distribution.local.store.put(mappedResults, mapResultKey, (putErr) => {
+                  totalKeysProcessed += completedCount;
                   if (batchIndex + 1 < batches.length) {
                     processBatch(batchIndex + 1);
                   } else {
+                    const endMapTime = process.hrtime(startMapTime);
+                    console.log(`[${global.moreStatus.sid}] Mapped ${totalKeysProcessed} completed in ${endMapTime[0]}s ${endMapTime[1] / 1000000}ms`);
                     callback(putErr, mappedResults);
                   }
                 });
@@ -136,6 +145,7 @@ function mr(config) {
         const startShuffleTime = process.hrtime();
         console.log(`Starting shuffle for ${intermediateId}...`);
 
+        let totalEntriesProcessed = 0;
         const shuffleMapBatch = (mapBatchIndex) => {
           const mapBatchKey = mapBatchKeys[mapBatchIndex];
           distribution.local.store.get(mapBatchKey, (err, mappedData) => {
@@ -144,8 +154,7 @@ function mr(config) {
               return;
             }
             
-            let entriesProcessed = 0;
-  
+            let batchEntriesProcessed = 0;
             // console.log(mappedData);
             
             // group data by keys for reduction
@@ -166,14 +175,15 @@ function mr(config) {
                 } else {
                   // console.log(`[${storageGroup}] Stored ${key}, ${value}`);
                 }
-                entriesProcessed++;
+                batchEntriesProcessed++;
                 
-                if (entriesProcessed === mappedData.length) {
+                if (batchEntriesProcessed === mappedData.length) {
+                  totalEntriesProcessed += batchEntriesProcessed;
                   if (mapBatchIndex + 1 < mapBatchKeys.length) {
                     shuffleMapBatch(mapBatchIndex + 1);
                   } else {
                     const endShuffleTime = process.hrtime(startShuffleTime);
-                    console.log(`Shuffle completed for ${entriesProcessed} entries in ${endShuffleTime[0]}s ${endShuffleTime[1] / 1000000}ms`);
+                    console.log(`[${global.moreStatus.sid}] Shuffle completed for ${totalEntriesProcessed} entries in ${endShuffleTime[0]}s ${endShuffleTime[1] / 1000000}ms`);
                     callback(null, mappedData);
                   }
                 }
@@ -226,7 +236,7 @@ function mr(config) {
               // when all keys processed, return final results
               if (keysProcessed === keys.length) {
                 const endReduceTime = process.hrtime(startReduceTime);
-                console.log(`Reduce processed ${keysProcessed} in ${endReduceTime[0]}s ${endReduceTime[1] / 1000000}ms`);
+                console.log(`[${global.moreStatus.sid}] Reduce processed ${keysProcessed} in ${endReduceTime[0]}s ${endReduceTime[1] / 1000000}ms`);
                 callback(null, reducedResults);
               }
             });

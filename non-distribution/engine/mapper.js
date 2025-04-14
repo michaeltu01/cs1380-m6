@@ -7,7 +7,7 @@ async function mapperFunction(key, value, require) {
     const https = require('https');
     // key is URL, <nothing -- unicorns>
     console.log("URL: ", key);
-    const startMapTime = process.hrtime();
+    // const startMapTime = process.hrtime();
     try {
         // fetch the page content
         // const response = await fetch(key, { method: "GET" });
@@ -105,14 +105,14 @@ async function mapperFunction(key, value, require) {
             out[gram[0]] = [[key, gram[1]]];
             results.push(out);
         }
-        const endMapTime = process.hrtime(startMapTime);
-        console.log(`Mapping ${key} completed in ${endMapTime[0]}s ${endMapTime[1] / 1000000}ms`);
+        // const endMapTime = process.hrtime(startMapTime);
+        // console.log(`Mapping ${key} completed in ${endMapTime[0]}s ${endMapTime[1] / 1000000}ms`);
         return results;
     }
     catch (err) {
         console.error('Error in mapper function', err);
-        const endMapTime = process.hrtime(startMapTime);
-        console.log(`Mapping ${key} completed in ${endMapTime[0]}s ${endMapTime[1] / 1000000}ms`);
+        // const endMapTime = process.hrtime(startMapTime);
+        // console.log(`Mapping ${key} completed in ${endMapTime[0]}s ${endMapTime[1] / 1000000}ms`);
         return [];
     }
 }
