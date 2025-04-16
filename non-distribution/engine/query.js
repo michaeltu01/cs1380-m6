@@ -31,13 +31,20 @@ function createQueryService(distribution, require) {
         return processedQuery;
     }
 
-    function searchIndex(queryString, callback) {
+    function searchIndex(queryString, remoteNodeConfig, callback) {
         const processedQuery = processQuery(queryString);
         console.log('Processed query:', processedQuery);
         
-        // this needs to run on the same node as orchestrator
+        // NOTE: this needs to run on the same node as orchestrator
         // can do a comm.send on the orchestrator node if we want to run separately
-        distribution.local.store.get(null, (err, keys) => {
+        // distribution.local.store.get(null, (err, keys) => {
+        const remote = {
+            node: remoteNodeConfig,
+            gid: 'local',
+            service: 'store',
+            method: 'get',
+        };
+        distribution.local.comm.send([null], remote, (err, keys) => {
             if (err) {
                 return callback(err);
             }
@@ -51,7 +58,7 @@ function createQueryService(distribution, require) {
             const results = {};
             let keysProcessed = 0;
 
-            console.log('Relevant keys:', relevantKeys);
+            // console.log('Relevant keys:', relevantKeys);
 
             relevantKeys.forEach(key => {
                 distribution.local.store.get(key, (err, urlFreqPairs) => {
