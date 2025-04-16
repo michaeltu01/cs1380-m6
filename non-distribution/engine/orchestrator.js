@@ -148,19 +148,24 @@ function createOrchestrator() {
       console.log(`Indexing completed in ${endIndexTime[0]}s ${endIndexTime[1] / 1000000}ms`);
       console.log('all done');
       stopNodes();
-      // call the cli loop
-      const startTimeCLI = process.hrtime();
-      console.log('Starting search CLI...');
-      queryService.searchIndex("chicken", (err, results) => {
-        if (err) {
-          console.error('Error searching index:', err);
-        } else {
-          console.log('Search results:', results)
-        }
-      });
-      const endCLITime = process.hrtime(startTimeCLI);
-      console.log(`CLI completed in ${endCLITime[0]}s ${endCLITime[1] / 1000000}ms`);
-      localServer.close();
+      console.log(`Orchestrator node: ${JSON.stringify(global.nodeConfig)}`);
+      // localServer.close();
+      // // call the cli loop
+      // const startTimeCLI = process.hrtime();
+      // console.log('Starting search CLI...');
+      // queryService.searchIndex("chicken", global.nodeConfig, (err, results) => {
+      //   if (err) {
+      //     console.error('Error searching index:', err);
+      //   } else {
+      //     console.log('Search results:', results)
+      //   }
+      //   const endCLITime = process.hrtime(startTimeCLI);
+      //   console.log(`CLI completed in ${endCLITime[0]}s ${endCLITime[1] / 1000000}ms`);
+
+      //   // Stop all nodes and local server after the CLI is done
+      //   stopNodes();
+      //   localServer.close();
+      // });
     });
     console.log('exec done');
   }
